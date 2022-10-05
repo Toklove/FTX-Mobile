@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, reactive, toRefs } from "vue";
+<script lang="ts" setup>
+import { reactive, toRefs } from "vue";
 
 //底部tab栏相关
 const useTabBar = () => {
@@ -13,9 +13,30 @@ const useTabBar = () => {
         icon: "home-o",
       },
       {
-        title: "我",
+        title: "币币",
         to: {
-          name: "About",
+          name: "Bibi",
+        },
+        icon: "home-o",
+      },
+      {
+        title: "期权",
+        to: {
+          name: "QiQuan",
+        },
+        icon: "home-o",
+      },
+      {
+        title: "合约",
+        to: {
+          name: "HeYue",
+        },
+        icon: "home-o",
+      },
+      {
+        title: "资产",
+        to: {
+          name: "Base",
         },
         icon: "user-o",
       },
@@ -45,5 +66,4 @@ const handleChange = (value) => {
   </div>
 </template>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

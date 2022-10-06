@@ -6,6 +6,12 @@
 
 <script setup></script>
 
+<script lang="ts">
+export default {
+  name: "DataLoading"
+};
+</script>
+
 <style lang="scss" scoped>
 .loading {
   width: 100%;

@@ -1,0 +1,13 @@
+{
+  "lang": "English",
+  "changeLang": "Change Lang",
+  "home": {
+    "welcome": "Welcome",
+    "recharge": "Recharge",
+    "lockedMining": "Locked Mining",
+    "service": "Service",
+    "promotion": "Promotion",
+    "crypto": "Cryptocurrency",
+    "sub": "Subscription"
+  }
+}

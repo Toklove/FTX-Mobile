@@ -1,50 +1,47 @@
 <script lang="ts" setup>
-import { reactive, toRefs } from "vue";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 //底部tab栏相关
-const useTabBar = () => {
-  const state = reactive({
-    tabBar: [
-      {
-        title: "首页",
-        to: {
-          name: "Home",
-        },
-        icon: "home-o",
-      },
-      {
-        title: "币币",
-        to: {
-          name: "Bibi",
-        },
-        icon: "home-o",
-      },
-      {
-        title: "期权",
-        to: {
-          name: "QiQuan",
-        },
-        icon: "home-o",
-      },
-      {
-        title: "合约",
-        to: {
-          name: "HeYue",
-        },
-        icon: "home-o",
-      },
-      {
-        title: "资产",
-        to: {
-          name: "Base",
-        },
-        icon: "user-o",
-      },
-    ],
-  });
-  return toRefs(state);
-};
-const { tabBar } = useTabBar();
+const tabBar = computed(() => [
+  {
+    title: t("menu.home"),
+    to: {
+      name: "Home"
+    },
+    icon: "home-o"
+  },
+  {
+    title: t("menu.coins"),
+    to: {
+      name: "Bibi"
+    },
+    icon: "home-o"
+  },
+  {
+    title: t("menu.options"),
+    to: {
+      name: "QiQuan"
+    },
+    icon: "home-o"
+  },
+  {
+    title: t("menu.contract"),
+    to: {
+      name: "HeYue"
+    },
+    icon: "home-o"
+  },
+  {
+    title: t("menu.assets"),
+    to: {
+      name: "Base"
+    },
+    icon: "user-o"
+  }
+]);
 
 const handleChange = (value) => {
   // console.log(value,'valueeeeeee');

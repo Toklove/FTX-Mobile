@@ -1,12 +1,9 @@
-import { ref } from 'vue'
-import { defineStore } from "pinia"
-export const usePiniaState = defineStore('pinia', ()=>{
-    const userName = ref('')
-    const getUserNmae = (data) => {
-        userName.value = data
-    }
-    return { userName, getUserNmae}
-})
+import { defineStore } from "pinia";
+
+export const defaultStore = defineStore("default", () => {
+  const showChangeLang = false;
+  return { showChangeLang };
+});
 
 
 // export const usePiniaState = defineStore({

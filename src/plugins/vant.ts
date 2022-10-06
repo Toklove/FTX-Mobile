@@ -18,6 +18,8 @@ import {
   Loading,
   NavBar,
   NoticeBar,
+  Picker,
+  Popup,
   Row,
   Search,
   Sticky,
@@ -27,7 +29,7 @@ import {
   Tabbar,
   TabbarItem,
   Tabs,
-  Toast,
+  Toast
 } from "vant";
 
 const pluginsVant = [
@@ -56,11 +58,13 @@ const pluginsVant = [
   Row,
   Col,
   Loading,
+  Picker,
+  Popup
 ];
 export const vantPlugins = {
-  install: function (vm) {
+  install: function(vm) {
     pluginsVant.forEach((item: any) => {
       vm.component(item.name, item);
     });
-  },
+  }
 };

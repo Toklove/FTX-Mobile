@@ -1,5 +1,8 @@
 <template>
-  <router-view/>
+  <div>
+    <router-view />
+    <ChangeLang />
+  </div>
 </template>
 
 <style lang="scss">
@@ -9,3 +12,5 @@
 }
 </style>
 
+<script setup>
+import ChangeLang from "@/components/changeLang/ChangeLang.vue";</script>

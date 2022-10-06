@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onBeforeMount, reactive, ref, watch } from "vue";
+import { computed, onBeforeMount, reactive, ref, watch } from "vue";
 import { getSymbolTrend } from "@/api/home";
 import pako from "pako";
 import cbImg from "@/assets/img/13.png";
@@ -7,22 +7,12 @@ import boxImg from "@/assets/img/8.png";
 import keImg from "@/assets/img/ke.png";
 import BTCImg from "@/assets/img/BTC.png";
 import DataLoading from "@/components/loading/DataLoading.vue";
-
-let socketBtc,
-  socketEth,
-  socketEos,
-  socketBch,
-  socketLtc,
-  socketXrp,
-  socketEtc,
-  socketBsv,
-  socketDot,
-  socketDTB,
-  socketTrx,
-  socketShib;
+import { defaultStore } from "@/store/testPinia";
+import { useI18n } from "vue-i18n";
 
 const dataIndex = reactive([]);
 const dataSuccess = ref(false);
+const store = defaultStore();
 
 const stockList = ref([]);
 watch(dataIndex, () => {
@@ -35,426 +25,79 @@ watch(dataIndex, () => {
   });
 });
 
-function wsGetData() {
-  let haurl = "wss://api.huobi.pro/ws";
-  let btcArray = {
-    sub: "market.btcusdt.kline.1day",
-    id: "id1",
-  };
-  socketBtc = new WebSocket(haurl);
-  socketBtc.onopen = function () {
-    console.log("connection establish");
-    socketBtc.send(JSON.stringify(btcArray));
-  };
-  socketBtc.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      // console.log(JSON.parse(msg));
-      handleData(msg, "BTC");
-      dataSuccess.value = true;
+function initWsData() {
+  if (dataIndex.length < 1) {
+    setTimeout(() => {
+      initWsData();
+    }, 1e3);
+    return;
+  }
+  let haurl = "wss://api.btcgateway.pro/linear-swap-ws";
+  dataIndex.forEach((item, index) => {
+    let str = item.symbol.replace("/", "-");
+    let subArray = {
+      sub: `market.${str}.kline.1day`,
+      id: "id" + index
     };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketBtc.onclose = function () {
-    console.log("connection closed");
-  };
+    let socket = new WebSocket(haurl);
+    socket.onopen = function() {
+      console.log("connection establish");
+      socket.send(JSON.stringify(subArray));
+    };
+    socket.onmessage = function(event) {
+      let blob = event.data;
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        let ploydata = new Uint8Array(e.target.result);
+        let msg = pako.inflate(ploydata, { to: "string" });
+        dataHandler(msg, str.split("-")[0], socket);
+        dataSuccess.value = true;
+      };
+      reader.readAsArrayBuffer(blob);
+    };
+  });
 }
 
-function usdtMarketWS() {
-  let haurl = "wss://api.huobi.pro/ws";
-  let btcArray = {
-    sub: "market.btcusdt.kline.1day",
-    id: "id1",
-  };
-  socketBtc = new WebSocket(haurl);
-  socketBtc.onopen = function () {
-    console.log("connection establish");
-    socketBtc.send(JSON.stringify(btcArray));
-  };
-  socketBtc.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      // console.log(JSON.parse(msg));
-      handleData(msg, "BTC");
-      dataSuccess.value = true;
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketBtc.onclose = function () {
-    console.log("connection closed");
-  };
-  ///////////////////////////////////
-  let ethArray = {
-    sub: "market.ethusdt.detail",
-    id: "id2",
-  };
-  socketEth = new WebSocket(haurl);
 
-  socketEth.onopen = function () {
-    //console.log("connection establish");
-    socketEth.send(JSON.stringify(ethArray));
-  };
-  socketEth.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "ETH");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketEth.onclose = function () {
-    //console.log('connection closed');
-  };
-  ///////////////////////////////////////////////////////////
-  let eosArray = {
-    sub: "market.eosusdt.detail",
-    id: "id3",
-  };
-  socketEos = new WebSocket(haurl);
-
-  socketEos.onopen = function () {
-    //console.log("connection establish");
-    socketEos.send(JSON.stringify(eosArray));
-  };
-  socketEos.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "EOS");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketEos.onclose = function () {
-    //console.log('connection closed');
-  };
-
-  /////////////////////////////////////////////////////////////////
-  let bchArray = {
-    sub: "market.bchusdt.detail",
-    id: "id4",
-  };
-  socketBch = new WebSocket(haurl);
-
-  socketBch.onopen = function () {
-    //console.log("connection establish");
-    socketBch.send(JSON.stringify(bchArray));
-  };
-  socketBch.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "BCH");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketBch.onclose = function () {
-    //console.log('connection closed');
-  };
-  ///////////////////////////////////////////////////
-  let ltcArray = {
-    sub: "market.ltcusdt.detail",
-    id: "id5",
-  };
-  socketLtc = new WebSocket(haurl);
-
-  socketLtc.onopen = function () {
-    //console.log("connection establish");
-    socketLtc.send(JSON.stringify(ltcArray));
-  };
-  socketLtc.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "LTC");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketLtc.onclose = function () {
-    //console.log('connection closed');
-  };
-  ///////////////////////////////////////////////////
-  let qtumArray = {
-    sub: "market.xrpusdt.detail",
-    id: "id6",
-  };
-  socketXrp = new WebSocket(haurl);
-
-  socketXrp.onopen = function () {
-    //console.log("connection establish");
-    socketXrp.send(JSON.stringify(qtumArray));
-  };
-  socketXrp.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "XRP");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketXrp.onclose = function () {
-    //console.log('connection closed');
-  };
-  ///////////////////////////////////////////////////
-  let etcArray = {
-    sub: "market.etcusdt.detail",
-    id: "id7",
-  };
-  socketEtc = new WebSocket(haurl);
-
-  socketEtc.onopen = function () {
-    //console.log("connection establish");
-    socketEtc.send(JSON.stringify(etcArray));
-  };
-  socketEtc.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "ETC");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketEtc.onclose = function () {
-    //console.log('connection closed');
-  };
-
-  /////////////////////////////////////
-  let bsvArray = {
-    //DOGE
-    sub: "market.dogeusdt.detail",
-    id: "id8",
-  };
-  socketBsv = new WebSocket(haurl);
-
-  socketBsv.onopen = function () {
-    //console.log("connection establish");
-    socketBsv.send(JSON.stringify(bsvArray));
-  };
-  socketBsv.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "DOGE");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketBsv.onclose = function () {
-    //console.log('connection closed');
-  };
-
-  /////////////////////////////////////fil
-  let dotArray = {
-    sub: "market.filusdt.detail",
-    id: "id8",
-  };
-  socketDot = new WebSocket(haurl);
-
-  socketDot.onopen = function () {
-    socketDot.send(JSON.stringify(dotArray));
-  };
-  socketDot.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "FIL");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketDot.onclose = function () {
-    //console.log('connection closed');
-  };
-  /////
-  let dtbArray = {
-    sub: "market.dtbusdt.detail",
-    id: "id8",
-  };
-  socketDTB = new WebSocket(haurl);
-
-  socketDTB.onopen = function () {
-    //console.log("connection establish");
-    socketDTB.send(JSON.stringify(dtbArray));
-  };
-  socketDTB.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "DTB");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketDTB.onclose = function () {
-    //console.log('connection closed');
-  };
-
-  /////////////////////////////////////TRX
-  let trxArray = {
-    sub: "market.trxusdt.detail",
-    id: "id8",
-  };
-  socketTrx = new WebSocket(haurl);
-
-  socketTrx.onopen = function () {
-    socketTrx.send(JSON.stringify(trxArray));
-  };
-  socketTrx.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "TRX");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketTrx.onclose = function () {
-    //console.log('connection closed');
-  };
-
-  /////////////////////////////////////SHIB
-  let shibArray = {
-    sub: "market.shibusdt.detail",
-    id: "id8",
-  };
-  socketShib = new WebSocket(haurl);
-
-  socketShib.onopen = function () {
-    socketShib.send(JSON.stringify(shibArray));
-  };
-  socketShib.onmessage = function (event) {
-    let blob = event.data;
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let ploydata = new Uint8Array(e.target.result);
-      let msg = pako.inflate(ploydata, { to: "string" });
-      handleData(msg, "SHIB");
-    };
-    reader.readAsArrayBuffer(blob);
-  };
-  socketShib.onclose = function () {
-    //console.log('connection closed');
-  };
-}
-
-function sendHeartMessage(ping, coinType) {
-  if (coinType == "BTC") {
-    socketBtc.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "EOS") {
-    socketEos.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "BCH") {
-    socketBch.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "LTC") {
-    socketLtc.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "ETH") {
-    socketEth.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "ETC") {
-    socketEtc.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "XRP") {
-    socketXrp.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "BSV") {
-    socketBsv.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "FIL") {
-    socketDot.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "TRX") {
-    socketDTB.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "SHIB") {
-    socketDTB.send(JSON.stringify({ pong: ping }));
-  }
-  if (coinType == "DTB") {
-    socketDTB.send(JSON.stringify({ pong: ping }));
-  }
-}
-
-function handleReponseData() {}
-
-function handleData(msg, coinType) {
+function dataHandler(msg, coinType, socket) {
   // console.log(dataIndex);
   let data = JSON.parse(msg);
   if (data.ping) {
     // 如果是 ping 消息
-    sendHeartMessage(data.ping, coinType);
-  } else if (data.status === "ok") {
-    // 响应数据
-    handleReponseData();
-  } else {
+    socket.send(JSON.stringify({ pong: data.ping }));
+  } else if (!data.status) {
     let str = JSON.stringify(data);
-    console.log("当前交易对::::::coinType===" + coinType);
-    if (
-      coinType == "BTC" ||
-      coinType == "ETH" ||
-      coinType == "XRP" ||
-      coinType == "LTC" ||
-      coinType == "DOGE" ||
-      coinType == "EOS" ||
-      coinType == "FIL" ||
-      coinType == "TRX" ||
-      coinType == "SHIB"
-    ) {
-      let jo = JSON.parse(str);
-      let tick = jo.tick;
-      let amount = tick.amount;
-      let open = tick.open;
-      let close = tick.close;
-      let vol = tick.vol;
-      vol = vol.toFixed(2);
-      let high = tick.high;
-      let low = tick.low;
-      let chg = (close - open) / open;
+    console.log(data);
+    let jo = JSON.parse(str);
+    let tick = jo.tick;
+    // let amount = tick.amount;
+    let open = tick.open;
+    let close = tick.close;
+    let vol = tick.vol;
+    vol = vol.toFixed(2);
+    let high = tick.high;
+    let low = tick.low;
+    let chg = (close - open) / open;
+    if (dataIndex != null && dataIndex.length > 0) {
+      for (let i = 0; i < dataIndex.length; i++) {
+        let jo = dataIndex[i];
+        let symbol = jo.symbol;
+        // console.log("当前symbol===="+symbol);
+        let coinTypeStr = coinType + "/USDT";
 
-      //console.log(JSON.stringify(dataIndex));
-      if (dataIndex != null && dataIndex.length > 0) {
-        for (let i = 0; i < dataIndex.length; i++) {
-          let jo = dataIndex[i];
-          let symbol = jo.symbol;
-          // console.log("当前symbol===="+symbol);
-          let coinTypeStr = coinType + "/USDT";
-
-          if (symbol == coinTypeStr) {
-            jo.price = close;
-            //console.log("symbol="+symbol+" close="+close);
-            //
-            jo.close = close;
-            jo.highest = high;
-            jo.lowest = low;
-            jo.volume = vol;
-            jo.usdRate = close;
-            jo.rose =
-              chg > 0
-                ? "+" + (chg * 100).toFixed(2) + "%"
-                : (chg * 100).toFixed(2) + "%";
-          }
+        if (symbol == coinTypeStr) {
+          jo.price = close;
+          //console.log("symbol="+symbol+" close="+close);
+          //
+          jo.close = close;
+          jo.highest = high;
+          jo.lowest = low;
+          jo.volume = vol;
+          jo.usdRate = close;
+          jo.rose =
+            chg > 0
+              ? "+" + (chg * 100).toFixed(2) + "%"
+              : (chg * 100).toFixed(2) + "%";
         }
       }
     }
@@ -467,39 +110,47 @@ onBeforeMount(() => {
       dataIndex.push(item);
     });
   });
-  usdtMarketWS();
+  initWsData();
 });
-
 const images = [
-  "https://server.ftx668.vip/storage/images/133a6d73952366f6b9d1dc8d02eb3dd4.png",
+  "https://server.ftx668.vip/storage/images/133a6d73952366f6b9d1dc8d02eb3dd4.png"
 ];
 
-const list = reactive([
-  {
-    title: "充币",
-    img: cbImg,
-  },
-  {
-    title: "鎖倉挖礦",
-    img: boxImg,
-  },
-  {
-    title: "客服",
-    img: keImg,
-  },
-  {
-    title: "推广",
-    img: boxImg,
-  },
-  {
-    title: "加密货币",
-    img: boxImg,
-  },
-  {
-    title: "申購",
-    img: boxImg,
-  },
-]);
+const { t } = useI18n();
+
+const list = computed(() => [
+    {
+      title: t("home.recharge"),
+      img: cbImg
+    },
+    {
+      title: t("home.lockedMining"),
+      img: boxImg
+    },
+    {
+      title: t("home.service"),
+      img: keImg
+    },
+    {
+      title: t("home.promotion"),
+      img: boxImg
+    },
+    {
+      title: t("home.crypto"),
+      img: boxImg
+    },
+    {
+      title: t("home.sub"),
+      img: boxImg
+    }
+  ]
+);
+
+function changeLang() {
+  store.showChangeLang = true;
+  console.log(store.showChangeLang);
+}
+
 </script>
 
 <template>
@@ -507,11 +158,13 @@ const list = reactive([
     <van-nav-bar>
       <template #left>
         <van-icon class="color-main" name="user-circle-o" size="25" />
-        <p class="header-text">FTX 欢迎您！</p>
+        <p class="header-text">FTX {{ $t("home.welcome") }}！</p>
       </template>
       <template #right>
-        <span class="right-text">简体中文</span>
-        <van-icon name="arrow" style="color: rgb(100, 101, 102)" />
+        <div @click="changeLang">
+          <span class="right-text">{{ $t("lang") }}</span>
+          <van-icon name="arrow" style="color: rgb(100, 101, 102)" />
+        </div>
       </template>
     </van-nav-bar>
     <div class="py-3 px-3">
@@ -551,33 +204,33 @@ const list = reactive([
           <span
             :class="parseFloat(item.rose) < 0 ? 'color-sell' : 'color-buy'"
             class="stock-price"
-            >{{ item.price }}</span
+          >{{ item.price }}</span
           >
           <span
             :class="parseFloat(item.rose) < 0 ? 'color-sell' : 'color-buy'"
             class="stock-rose"
-            >{{ item.rose }}</span
+          >{{ item.rose }}</span
           >
         </van-col>
       </van-row>
     </div>
     <div class="px-3 box-shadow text-again-center text-grey data-list">
       <van-row style="padding: 10px 0">
-        <van-col class="data-title" span="12">交易对</van-col>
-        <van-col class="data-title" span="5">价格</van-col>
-        <van-col class="data-title" span="7">涨幅</van-col>
+        <van-col class="data-title" span="12">{{ t("home.trading") }}</van-col>
+        <van-col class="data-title" span="5">{{ t("home.price") }}</van-col>
+        <van-col class="data-title" span="7">{{ t("home.growth") }}</van-col>
       </van-row>
       <div v-for="item in dataIndex" v-if="dataSuccess" class="data-item">
         <van-image :src="BTCImg" class="data-icon" />
         <van-row style="width: 100%">
           <van-col class="left" span="12">
             <span class="title">{{ item.symbol }}</span>
-            <span class="volume">交易量 {{ item.volume }}</span>
+            <span class="volume">{{ t("home.amount") }} {{ item.volume }}</span>
           </van-col>
           <van-col class="center" span="6">
             <span
               :class="parseFloat(item.rose) < 0 ? 'color-sell' : 'color-buy'"
-              >{{ item.price }}</span
+            >{{ item.price }}</span
             >
           </van-col>
           <van-col class="right" span="6">

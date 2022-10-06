@@ -1,7 +1,7 @@
-import {defineConfig, loadEnv} from "vite";
+import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
-import styleImport, {VantResolve} from "vite-plugin-style-import";
+import styleImport, { VantResolve } from "vite-plugin-style-import";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -17,15 +17,15 @@ export default defineConfig(({ command, mode }) => {
         "@": path.resolve(__dirname, "src"),
         // 导入其他目录
         components: path.resolve(__dirname, "components"),
-        "@img": path.resolve(__dirname, "src/assets/img"),
-      },
+        "vue-i18n": "vue-i18n/dist/vue-i18n.cjs.js"
+      }
     },
     plugins: [
       vue(),
       // 配置后，Vant各组件才生效
       styleImport({
-        resolves: [VantResolve()],
-      }),
+        resolves: [VantResolve()]
+      })
     ],
 
     // 跨域代理
@@ -35,9 +35,9 @@ export default defineConfig(({ command, mode }) => {
         "/api": {
           target: "https://api.inews.qq.com",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""), // 将匹配到的api替换成''
-        },
-      },
-    },
+          rewrite: (path) => path.replace(/^\/api/, "") // 将匹配到的api替换成''
+        }
+      }
+    }
   };
 });

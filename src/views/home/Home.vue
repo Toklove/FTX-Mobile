@@ -13,6 +13,8 @@ import { useI18n } from "vue-i18n";
 const dataIndex = reactive([]);
 const dataSuccess = ref(false);
 const store = defaultStore();
+let haurl = "wss://api.btcgateway.pro/linear-swap-ws";
+let socket;
 
 const stockList = ref([]);
 watch(dataIndex, () => {
@@ -25,49 +27,48 @@ watch(dataIndex, () => {
   });
 });
 
-function initWsData() {
+function sendSub() {
   if (dataIndex.length < 1) {
-    setTimeout(() => {
-      initWsData();
-    }, 1e3);
+    setTimeout(sendSub, 500);
     return;
   }
-  let haurl = "wss://api.btcgateway.pro/linear-swap-ws";
   dataIndex.forEach((item, index) => {
     let str = item.symbol.replace("/", "-");
     let subArray = {
       sub: `market.${str}.kline.1day`,
       id: "id" + index
     };
-    let socket = new WebSocket(haurl);
-    socket.onopen = function() {
-      console.log("connection establish");
-      socket.send(JSON.stringify(subArray));
-    };
-    socket.onmessage = function(event) {
-      let blob = event.data;
-      let reader = new FileReader();
-      reader.onload = function(e) {
-        let ploydata = new Uint8Array(e.target.result);
-        let msg = pako.inflate(ploydata, { to: "string" });
-        dataHandler(msg, str.split("-")[0], socket);
-        dataSuccess.value = true;
-      };
-      reader.readAsArrayBuffer(blob);
-    };
+    socket.send(JSON.stringify(subArray));
+
   });
 }
 
+function initWsData() {
+  socket.onopen = function() {
+    sendSub();
+  };
+  socket.onmessage = function(event) {
+    let blob = event.data;
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      let ploydata = new Uint8Array(e.target.result);
+      let msg = pako.inflate(ploydata, { to: "string" });
+      dataHandler(msg);
+      dataSuccess.value = true;
+    };
+    reader.readAsArrayBuffer(blob);
+  };
+}
 
-function dataHandler(msg, coinType, socket) {
-  // console.log(dataIndex);
+
+function dataHandler(msg) {
   let data = JSON.parse(msg);
   if (data.ping) {
     // 如果是 ping 消息
     socket.send(JSON.stringify({ pong: data.ping }));
   } else if (!data.status) {
+    let coinType = data.ch.split(".")[1].split("-")[0];
     let str = JSON.stringify(data);
-    console.log(data);
     let jo = JSON.parse(str);
     let tick = jo.tick;
     // let amount = tick.amount;
@@ -82,13 +83,10 @@ function dataHandler(msg, coinType, socket) {
       for (let i = 0; i < dataIndex.length; i++) {
         let jo = dataIndex[i];
         let symbol = jo.symbol;
-        // console.log("当前symbol===="+symbol);
         let coinTypeStr = coinType + "/USDT";
 
         if (symbol == coinTypeStr) {
           jo.price = close;
-          //console.log("symbol="+symbol+" close="+close);
-          //
           jo.close = close;
           jo.highest = high;
           jo.lowest = low;
@@ -105,6 +103,7 @@ function dataHandler(msg, coinType, socket) {
 }
 
 onBeforeMount(() => {
+  socket = new WebSocket(haurl);
   getSymbolTrend().then((res) => {
     res.forEach((item) => {
       dataIndex.push(item);
@@ -163,7 +162,7 @@ function changeLang() {
       <template #right>
         <div @click="changeLang">
           <span class="right-text">{{ $t("lang") }}</span>
-          <van-icon name="arrow" style="color: rgb(100, 101, 102)" />
+          <van-icon name="arrow-down" style="color: rgb(100, 101, 102)" />
         </div>
       </template>
     </van-nav-bar>
@@ -354,7 +353,7 @@ ul {
 
     .center {
       display: flex;
-      justify-content: center;
+      justify-content: start;
       align-items: center;
       font-size: 16px;
       font-weight: bold;

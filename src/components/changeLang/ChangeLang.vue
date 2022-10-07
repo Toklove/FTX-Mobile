@@ -2,8 +2,10 @@
   <div>
     <van-popup :show="store.showChangeLang" position="bottom" round>
       <van-picker
+        :cancel-button-text="t('cancel')"
         :columns="langList"
         :columns-field-names="customFieldName"
+        :confirm-button-text="t('confirm')"
         :title="t('changeLang')"
         @cancel="onCancel"
         @change="onChange"

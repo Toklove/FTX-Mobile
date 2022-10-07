@@ -7,6 +7,7 @@ import {
   Cell,
   CellGroup,
   Col,
+  Divider,
   DropdownItem,
   DropdownMenu,
   Field,
@@ -18,6 +19,7 @@ import {
   Loading,
   NavBar,
   NoticeBar,
+  Notify,
   Picker,
   Popup,
   Row,
@@ -59,7 +61,8 @@ const pluginsVant = [
   Col,
   Loading,
   Picker,
-  Popup
+  Popup,
+  Notify, Divider
 ];
 export const vantPlugins = {
   install: function(vm) {

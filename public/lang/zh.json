@@ -1,6 +1,8 @@
 {
   "lang": "简体中文",
   "changeLang": "切换语言",
+  "cancel": "取消",
+  "confirm": "确认",
   "menu": {
     "home": "首页",
     "coins": "币币",
@@ -23,5 +25,14 @@
   },
   "assets": {
     "title": "资产"
+  },
+  "auth": {
+    "username": "用户名",
+    "password": "密码",
+    "forgot": "忘记密码？",
+    "noAccount": "没有账号",
+    "registerNow": "立即注册",
+    "pleaseEnterAccount": "请填写用户名",
+    "pleaseEnterPassword": "请填写密码"
   }
 }

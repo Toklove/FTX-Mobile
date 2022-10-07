@@ -10,10 +10,12 @@
     "deploy": "bash deploy.sh"
   },
   "dependencies": {
+    "@types/qs": "^6.9.7",
     "axios": "^0.26.1",
     "pako": "^2.0.4",
     "pinia": "^2.0.20",
     "prettier": "^2.7.1",
+    "qs": "^6.11.0",
     "vant": "^3.4.6",
     "vue": "^3.2.25",
     "vue-i18n": "9",
